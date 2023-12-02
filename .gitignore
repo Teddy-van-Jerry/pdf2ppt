@@ -161,3 +161,9 @@ cython_debug/
 
 # macOS
 .DS_Store
+
+# This Project
+*.tmp
+
+# current dev
+*.ppt[x]
