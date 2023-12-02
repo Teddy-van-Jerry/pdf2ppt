@@ -1,0 +1,26 @@
+\documentclass[aspectratio=169, xcolor={dvipsnames}]{beamer}
+\usetheme[progressbar=frametitle]{metropolis}
+
+\title{\texttt{pdf2ppt}: Convert PDF Slides to PPT}
+\author{Teddy van Jerry (Wuqiong Zhao)}
+
+\begin{document}
+  \maketitle
+
+  \begin{frame}{Motivation}
+    \LaTeX{} users are often confronted with the annoying situation:
+    \begin{quote}
+      \alert{Submit PPT files not PDF files!}
+    \end{quote}
+    So...
+    we still use \texttt{beamer} to create the slides,
+    but convert the PDF slides to PPT files, each slide as a SVG converted from PDF.
+
+    \href{https://github.com/ashafaei/pdf2pptx}{\texttt{ashafaei/pdf2pptx}} is a wonderful project,
+    but the image quality is limited, and seems a bit buggy.
+  \end{frame}
+
+  \begin{frame}[standout]
+    Source Code: \url{https://github.com/Teddy-van-Jerry/pdf2ppt}
+  \end{frame}
+\end{document}
