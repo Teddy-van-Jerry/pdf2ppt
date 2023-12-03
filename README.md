@@ -4,6 +4,11 @@ Convert PDF Slides to PowerPoint Presentations (PPT)
 ## Motivation
 LaTeX users can easily convert the `beamer` slides in PDF to PPT.
 
+## Features
+- [x] vector graph (highest resolution) in generated PPT
+- [x] metadata (including title, author) conversion
+- [x] auto-detection of slide size and aspect ratio
+
 ## Dependency
 - **Python >= 3.9**: This project heavily relies on [`python-pptx`](https://python-pptx.readthedocs.io/). (Other required packages: `pypdf`, `tqdm`. Check [`requirements.txt`](requirements.txt))
 - [**pdf2svg**](https://github.com/dawbarton/pdf2svg): used for converting PDF to SVG
@@ -29,7 +34,8 @@ If you only want the latest Python script, you can directly download the source 
 wget https://raw.githubusercontent.com/Teddy-van-Jerry/pdf2ppt/master/pdf2ppt
 ```
 
-Use `make install` (maybe no possible on Windows) to install the script to `/usr/local/bin` (which should be in your `PATH` variable).
+For non-Windows users,
+use `make install` to install the script to `/usr/local/bin` (which should be in your `PATH` variable).
 
 > [!TIP]
 > Make sure you have the [dependency](#dependency) installed.
