@@ -12,8 +12,6 @@ import argparse
 import os
 from pathlib import Path
 from pptx import Presentation
-from pptx.util import Inches
-from pptx.util import Mm
 from pptx.util import Pt
 from pypdf import PdfReader
 import shutil
