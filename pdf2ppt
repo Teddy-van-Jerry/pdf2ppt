@@ -80,6 +80,26 @@ def emf2ppt(pdf_reader: PdfReader, pdf_path: Path, ppt_path: Path, verbose=False
     prs.slide_width = Pt(slide_width)
     prs.slide_height = Pt(slide_height)
 
+    # Add metadata.
+    slide_title = pdf_reader.metadata.title
+    slide_author = pdf_reader.metadata.author
+    slide_creator = pdf_reader.metadata.creator
+    slide_producer = pdf_reader.metadata.producer
+    slide_subject = pdf_reader.metadata.subject
+    slide_created = pdf_reader.metadata.creation_date
+
+    prs.core_properties.title = slide_title
+    prs.core_properties.author = slide_author
+    prs.core_properties.subject = slide_subject
+    prs.core_properties.created = slide_created
+    prs.core_properties.comments = 'Generated using pdf2ppt (https://github.com/Teddy-van-Jerry/pdf2ppt).'
+    if slide_creator is not None:
+        prs.core_properties.comments += '\nPDF Producer: ' + slide_producer
+    if slide_producer is not None:
+        prs.core_properties.comments += '\nPDF Creator: ' + slide_creator
+    prs.core_properties.last_modified_by = 'pdf2ppt'
+
+    # Embed all emf images to ppt.
     if verbose:
         print(f'Processing {slide_pages} pages from emf to ppt...')
     for i in tqdm(range(0, slide_pages), desc='emf2ppt', leave=verbose):
