@@ -23,5 +23,8 @@
                 "latexmk"
             ]
         },
+    ],
+    "cSpell.words": [
+        "inkscape"
     ]
 }

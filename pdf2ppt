@@ -1,24 +1,127 @@
 #!/usr/bin/env python3
 
+"""pdf2ppt
+
+Convert PDF Slides to PowerPoint Presentations (PPT)
+Author: Teddy van Jerry (Wuqiong Zhao)
+License: MIT
+GitHub: https://github.com/Teddy-van-Jerry/pdf2ppt
+"""
+
+import argparse
+import os
+from pathlib import Path
 from pptx import Presentation
 from pptx.util import Inches
 from pptx.util import Mm
 from pptx.util import Pt
 from pypdf import PdfReader
+import shutil
+from tqdm import tqdm
 
-pdf_reader = PdfReader('demo/demo.pdf')
-pdf_box = pdf_reader.pages[0].mediabox
-slide_width, slide_height = pdf_box[2], pdf_box[3]
+TMP_DIR_NAME = '_pdf2ppt.tmp'
+PDF2PPT_VERSION = '1.0'
+ERR_PDF2SVG = 101
+ERR_SVG2EMF = 102
 
-prs = Presentation()
-prs.slide_width = Pt(slide_width)
-prs.slide_height = Pt(slide_height)
-blank_slide_layout = prs.slide_layouts[6]
+def pdf2svg(pdf_path: Path, pdf2svg_path: Path='pdf2svg', verbose=False) -> bool:
+    """Convert PDF to SVG using pdf2svg
 
-for i in range(3):
-    slide = prs.slides.add_slide(blank_slide_layout)
+    Args:
+        pdf_path (Path): Path to the input PDF
+        pdf2svg_path (Path): Path to pdf2svg executable
+        verbose (bool): Verbose mode
+    """
+    # create tmp dir, remove contents if exists
+    # the dir is at the level of the input file
+    tmp_dir = pdf_path.parent / TMP_DIR_NAME
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    pdf_name = pdf_path.stem
+    # run shell script, convert pdf to svg
+    pdf2svg_cmd = f'{pdf2svg_path} {pdf_path} {tmp_dir / pdf_name}_%d.svg all'
+    if verbose:
+        print(f'pdf2svg command: {pdf2svg_cmd}')
+    return os.system(pdf2svg_cmd) == 0
 
-    emf_path = f'demo/_svg.tmp/demo_{i+1}.emf'
-    pic = slide.shapes.add_picture(emf_path, Inches(0), Inches(0), width=prs.slide_width)
+def svg2emf(pdf_reader: PdfReader, pdf_path: Path, inkscape_path='inkscape', verbose=False) -> bool:
+    """Convert SVG to EMF using inkscape
 
-prs.save('demo/demo.pptx')
+    Args:
+        pdf_reader (PdfReader): PdfReader of the input PDF
+        pdf_path (Path): Path to the input PDF
+        pdf2svg_path (Path): Path to pdf2svg executable
+        verbose (bool): Verbose mode
+    """
+    tmp_dir = pdf_path.parent / TMP_DIR_NAME
+    pdf_name = pdf_path.stem
+    # run shell script, convert pdf to svg
+    svg2emf_cmd_template = f'{inkscape_path} --export-type="emf" {tmp_dir / pdf_name}_%d.svg'
+    pdf_pages = len(pdf_reader.pages)
+    if verbose:
+        print(f'svg2emf command: {svg2emf_cmd_template}')
+        print(f'Processing {pdf_pages} pages from svg to emf...')
+    for i in tqdm(range(0, pdf_pages), desc='svg2emf', leave=verbose):
+        svg2emf_cmd = f'{inkscape_path} --export-type="emf" {tmp_dir / pdf_name}_{i + 1}.svg'
+        if os.system(svg2emf_cmd) != 0:
+            print(f'Error while running \'{svg2emf_cmd}\'')
+            return False
+    return True
+
+def emf2ppt(pdf_reader: PdfReader, pdf_path: Path, ppt_path: Path, verbose=False):
+    tmp_dir = pdf_path.parent / TMP_DIR_NAME
+    pdf_name = pdf_path.stem
+    slide_pages = len(pdf_reader.pages)
+
+    prs = Presentation()
+    blank_slide_layout = prs.slide_layouts[6]
+    # PPT does not support different slide size within one file, so we use the first page as reference.
+    pdf_box = pdf_reader.pages[0].mediabox
+    slide_width, slide_height = pdf_box[2], pdf_box[3]
+    prs.slide_width = Pt(slide_width)
+    prs.slide_height = Pt(slide_height)
+
+    if verbose:
+        print(f'Processing {slide_pages} pages from emf to ppt...')
+    for i in tqdm(range(0, slide_pages), desc='emf2ppt', leave=verbose):
+        slide = prs.slides.add_slide(blank_slide_layout)
+        emf_path = f'{tmp_dir / pdf_name}_{i + 1}.emf'
+        slide.shapes.add_picture(emf_path, Pt(0), Pt(0), width=prs.slide_width)
+    
+    prs.save(ppt_path)
+
+def clean_tmp(pdf_path: Path, verbose=False) -> bool:
+    tmp_dir = pdf_path.parent / TMP_DIR_NAME
+    shutil.rmtree(tmp_dir)
+    if verbose:
+        print('Finished cleaning up temporary files.')
+
+def main():
+    # command line options
+    parser = argparse.ArgumentParser(prog='pdf2ppt', description='Convert PDF Slides to PowerPoint Presentations (PPT)')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s {PDF2PPT_VERSION}')
+    parser.add_argument('input', metavar='input', type=Path, help='PDF file input')
+    parser.add_argument('output', metavar='output', type=Path, help='PPT file output (default as ext replacement)', nargs='?')
+    parser.add_argument('--verbose', action='store_true', help='Verbose mode')
+    parser.add_argument('--no-clean', action='store_true', help='Do not clean temporary files')
+    parser.add_argument('--pdf2svg-path', metavar='pdf2svg_path', type=Path, help='Path to pdf2svg (default: pdf2svg)', default='pdf2svg')
+    parser.add_argument('--inkscape-path', metavar='inkscape_path', type=Path, help='Path to inkscape (default: inkscape)', default='inkscape')
+    args = parser.parse_args()
+
+    if (args.verbose):
+        print(f"Processing PDF file: {args.input}")
+    if not pdf2svg(args.input, args.pdf2svg_path, args.verbose):
+        print('ERROR: Failed to run pdf2svg!')
+        exit(ERR_PDF2SVG)
+    pdf_reader = PdfReader(args.input)
+    if not svg2emf(pdf_reader, args.input, args.inkscape_path, args.verbose):
+        print('ERROR: Failed to run svg2emf!')
+        exit(ERR_SVG2EMF)
+    ppt_path = args.input.with_suffix('.pptx') if args.output is None else args.output
+    emf2ppt(pdf_reader, args.input, ppt_path, args.verbose)
+    if not args.no_clean:
+        clean_tmp(args.input)
+    if args.verbose:
+        print(f'Successfully generate PPT file: {ppt_path}')
+
+if __name__ == '__main__':
+    main()
