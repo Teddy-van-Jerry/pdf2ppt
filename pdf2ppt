@@ -116,7 +116,7 @@ def clean_tmp(pdf_path: Path, verbose=False) -> bool:
 def main():
     # command line options
     parser = argparse.ArgumentParser(prog='pdf2ppt', description='Convert PDF Slides to PowerPoint Presentations (PPT)')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s {PDF2PPT_VERSION}')
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {PDF2PPT_VERSION}')
     parser.add_argument('input', metavar='input', type=Path, help='PDF file input')
     parser.add_argument('output', metavar='output', type=Path, help='PPT file output (default as ext replacement)', nargs='?')
     parser.add_argument('--verbose', action='store_true', help='Verbose mode')

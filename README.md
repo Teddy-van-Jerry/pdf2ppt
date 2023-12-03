@@ -16,7 +16,7 @@ LaTeX users can easily convert the `beamer` slides in PDF to PPT.
 
 > [!NOTE]
 > `python3`, `pdf2svg` and `inkscape` should be in your PATH.
-> Alternatively, `--pdf2svg-path` and `inkscape-path` options can be used to specify their paths.
+> Alternatively, `--pdf2svg-path` and `--inkscape-path` options can be used to specify their paths.
 
 ## Usage
 ### Installation
@@ -29,11 +29,13 @@ If you only want the latest Python script, you can directly download the source 
 wget https://raw.githubusercontent.com/Teddy-van-Jerry/pdf2ppt/master/pdf2ppt
 ```
 
+Use `make install` (maybe no possible on Windows) to install the script to `/usr/local/bin` (which should be in your `PATH` variable).
+
 > [!TIP]
 > Make sure you have the [dependency](#dependency) installed.
 
 ### Command Line Options
-You can use `pdf2svg -h` to view all options.
+You can use `pdf2ppt -h` to view all options.
 
 ### Quick Start
 
@@ -46,7 +48,7 @@ pdf2ppt input.pdf output.pptx
 ```
 
 **Without specifying output file name**.
-The output will be `input.pptx`.
+The output will be `input.pptx` under the same directory of input.
 ```sh
 pdf2ppt input.pdf
 ```
@@ -57,5 +59,5 @@ pdf2ppt input.pdf output.pptx --verbose
 ```
 
 ## License
-Copyright ©️ 2023 Teddy van Jerry (Wuqiong Zhao).
+Copyright ©️ 2023 Teddy van Jerry ([Wuqiong Zhao](https://wqzhao.org)).
 This project is distributed under the [MIT License](LICENSE).
