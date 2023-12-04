@@ -41,7 +41,7 @@ def pdf2svg(pdf_path: Path, pdf2svg_path: Path='pdf2svg', verbose=False) -> bool
         print(f'pdf2svg command: {pdf2svg_cmd}')
     return os.system(pdf2svg_cmd) == 0
 
-def svg2emf(pdf_reader: PdfReader, pdf_path: Path, inkscape_path='inkscape', verbose=False) -> bool:
+def svg2emf(pdf_reader: PdfReader, pdf_path: Path, inkscape_path: Path='inkscape', verbose=False, no_check=False) -> [bool, list]:
     """Convert SVG to EMF using inkscape
 
     Args:
@@ -49,21 +49,38 @@ def svg2emf(pdf_reader: PdfReader, pdf_path: Path, inkscape_path='inkscape', ver
         pdf_path (Path): Path to the input PDF
         pdf2svg_path (Path): Path to pdf2svg executable
         verbose (bool): Verbose mode
+        no_check (bool): Do not check SVG filters
     """
     tmp_dir = pdf_path.parent / TMP_DIR_NAME
     pdf_name = pdf_path.stem
     # run shell script, convert pdf to svg
     svg2emf_cmd_template = f'{inkscape_path} --export-type="emf" {tmp_dir / pdf_name}_%d.svg'
     pdf_pages = len(pdf_reader.pages)
+    pages_with_filters = []
+    pages_with_filters_svg_dir = pdf_path.parent / f'{pdf_name}_svg'
     if verbose:
         print(f'svg2emf command: {svg2emf_cmd_template}')
         print(f'Processing {pdf_pages} pages from svg to emf...')
     for i in tqdm(range(0, pdf_pages), desc='svg2emf', leave=verbose):
-        svg2emf_cmd = f'{inkscape_path} --export-type="emf" {tmp_dir / pdf_name}_{i + 1}.svg'
+        svg_path = tmp_dir / f'{pdf_name}_{i + 1}.svg'
+        svg2emf_cmd = f'{inkscape_path} --export-type="emf" {svg_path}'
         if os.system(svg2emf_cmd) != 0:
             print(f'Error while running \'{svg2emf_cmd}\'')
-            return False
-    return True
+            return [False, []]
+        if not no_check:
+            # open SVG file and check if there is string "filter=" within it.
+            svg_file = open(svg_path, 'r')
+            svg_content = svg_file.read()
+            if 'filter=' in svg_content:
+                pages_with_filters.append(i + 1)
+                # create the directory if first time
+                if len(pages_with_filters) == 1:
+                    # remove the contents within first
+                    shutil.rmtree(pages_with_filters_svg_dir, ignore_errors=True)
+                    pages_with_filters_svg_dir.mkdir(parents=True, exist_ok=True)
+                # copy the SVG file to the directory
+                shutil.copy(svg_path, pages_with_filters_svg_dir / f'{pdf_name}_{i + 1}.svg')
+    return [True, pages_with_filters]
 
 def emf2ppt(pdf_reader: PdfReader, pdf_path: Path, ppt_path: Path, verbose=False):
     tmp_dir = pdf_path.parent / TMP_DIR_NAME
@@ -125,6 +142,7 @@ def main():
     parser.add_argument('output', metavar='output', type=Path, help='PPT file output (default as ext replacement)', nargs='?')
     parser.add_argument('--verbose', action='store_true', help='Verbose mode')
     parser.add_argument('--no-clean', action='store_true', help='Do not clean temporary files')
+    parser.add_argument('--no-check', action='store_true', help='Do not check SVG filters')
     parser.add_argument('--pdf2svg-path', metavar='pdf2svg_path', type=Path, help='Path to pdf2svg (default: pdf2svg)', default='pdf2svg')
     parser.add_argument('--inkscape-path', metavar='inkscape_path', type=Path, help='Path to inkscape (default: inkscape)', default='inkscape')
     args = parser.parse_args()
@@ -135,9 +153,16 @@ def main():
         print('ERROR: Failed to run pdf2svg!')
         exit(ERR_PDF2SVG)
     pdf_reader = PdfReader(args.input)
-    if not svg2emf(pdf_reader, args.input, args.inkscape_path, args.verbose):
+    svg2emf_ok, pages_with_filters = svg2emf(pdf_reader, args.input, args.inkscape_path, args.verbose, args.no_check)
+    if not svg2emf_ok:
         print('ERROR: Failed to run svg2emf!')
         exit(ERR_SVG2EMF)
+    else:
+        if not args.no_check and len(pages_with_filters) > 0:
+            print(f'WARNING: Pages {pages_with_filters} may not be correct, please double check.'
+                   '\n         You can manually copy the generated SVG images to PPT.'
+                   '\n         (More info: https://github.com/Teddy-van-Jerry/pdf2ppt/issues/1)')
+
     ppt_path = args.input.with_suffix('.pptx') if args.output is None else args.output
     emf2ppt(pdf_reader, args.input, ppt_path, args.verbose)
     if not args.no_clean:

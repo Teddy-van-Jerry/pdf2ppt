@@ -64,6 +64,12 @@ pdf2ppt input.pdf
 pdf2ppt input.pdf output.pptx --verbose
 ```
 
+### Known Issues
+#### Transparent Background
+Unfortunately, elements with transparent are not supported by the project, due to limitations of the dependency.
+You will receive a warning when such issues are detected, and you can copy the generated SVG manually to fix the problem.
+View [#1](https://github.com/Teddy-van-Jerry/pdf2ppt/issues/1) for more details.
+
 ## License
 Copyright ©️ 2023 Teddy van Jerry ([Wuqiong Zhao](https://wqzhao.org)).
 This project is distributed under the [MIT License](LICENSE).
