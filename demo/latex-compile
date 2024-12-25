@@ -1,2 +1,2 @@
 #!/bin/sh
-latexmk -pdflua demo
+latexmk -pdflua latex-demo
