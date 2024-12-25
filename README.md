@@ -2,7 +2,8 @@
 Convert PDF Slides to PowerPoint Presentations (PPT)
 
 ## Motivation
-LaTeX users can easily convert the `beamer` slides in PDF to PPT.
+- **LaTeX** users can easily convert the [`beamer`](https://ctan.org/pkg/beamer) slides in PDF to PPT.
+- **Typst** users can easily convert the [`touying`](https://typst.app/universe/package/touying/) slides in PDF to PPT.
 
 ## Features
 - [x] vector graph (highest resolution) in generated PPT
@@ -71,5 +72,5 @@ You will receive a warning when such issues are detected, and you can copy the g
 View [#1](https://github.com/Teddy-van-Jerry/pdf2ppt/issues/1) for more details.
 
 ## License
-Copyright ©️ 2023 Teddy van Jerry ([Wuqiong Zhao](https://wqzhao.org)).
+Copyright ©️ 2023-2024 Teddy van Jerry ([Wuqiong Zhao](https://wqzhao.org)).
 This project is distributed under the [MIT License](LICENSE).

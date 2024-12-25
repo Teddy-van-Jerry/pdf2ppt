@@ -1,8 +1,6 @@
 #import "@preview/touying:0.5.5": *
 #import themes.metropolis: *
 
-// #import "@preview/numbly:0.1.0": numbly
-
 #show: metropolis-theme.with(
   aspect-ratio: "16-9",
   footer: self => self.info.institution,
@@ -27,7 +25,6 @@ So...
 we still use `touying` to creaate the slides,
 but convert the PDF slides to PPT files, each slide as a SVG converted from PDF.
 
-// \href{https://github.com/ashafaei/pdf2pptx}{\texttt{ashafaei/pdf2pptx}}
 #link("https://github.com/ashafaei/pdf2pptx")[ashafaei/pdf2pptx] is a wonderful project,
 but the image quality is limited, and seems a bit buggy.
 
